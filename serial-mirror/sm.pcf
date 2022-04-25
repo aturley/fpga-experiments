@@ -1,0 +1,3 @@
+set_io clki 21
+set_io tx 8
+set_io rx 9

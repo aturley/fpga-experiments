@@ -1,0 +1,4 @@
+yosys -p 'synth_ice40 -top blinky -json blinky.json' blinky.v
+nextpnr-ice40 --package tq144 --hx1k --json blinky.json --pcf blinky.pcf --asc blinky.asc
+icepack blinky.asc blinky.bin
+iceprog blinky.bin
