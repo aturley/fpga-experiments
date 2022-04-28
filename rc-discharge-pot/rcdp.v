@@ -45,14 +45,14 @@ module top(
                CHARGING:
                  begin
                     out_hi <= 1;
-                    state = (accumulator > CHARGING_TICKS) ? MEASURING : CHARGING;
-                    accumulator = (accumulator > CHARGING_TICKS) ? 0 : accumulator + 1;
+                    state <= (accumulator > CHARGING_TICKS) ? MEASURING : CHARGING;
+                    accumulator <= (accumulator > CHARGING_TICKS) ? 0 : accumulator + 1;
                  end
                MEASURING:
                  begin
                     out_hi <= 0;
                     accumulator <= accumulator + 1;
-                    state = (in) ? MEASURING : FINISHED;
+                    state <= (in) ? MEASURING : FINISHED;
                  end
                FINISHED:
                  begin
