@@ -1,0 +1,10 @@
+set_io clki 21
+set_io tx 8
+set_io rx 9
+set_io in 119
+set_io out 118
+set_io disp0 99
+set_io disp1 98
+set_io disp2 97
+set_io disp3 96
+set_io green 95
