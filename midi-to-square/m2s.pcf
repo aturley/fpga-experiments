@@ -1,0 +1,5 @@
+set_io clki 21
+set_io tx 8
+set_io rx 9
+set_io buzz 99
+set_io resetq 3
