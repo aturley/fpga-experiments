@@ -7,18 +7,38 @@ module synth (
               input  [7:0] velocity,
               output buzz
               );
-   reg [12:0]        ticks;
-   reg [12:0]        on_ticks;
-   reg [12:0]        wave_ticks;
+   reg [24:0]        ticks;
+   reg [24:0]        on_ticks;
+   reg [24:0]        wave_ticks;
 
    parameter         HERTZ = 12000000;
 
    // TODO:
    //
-   // MIDI wave lengths in ticks, for notes 40 to 52. These 
+   // MIDI wave lengths in ticks, for notes 48 to 59. These 
    // can be shifted right or left to put them into the correct 
    // octave.
+   //
+   //   ticks = (CPU freq) / (note freq)
    // 
+   // Python code to do this:
+   //   f = 130.81
+   //   cpu_freq = 12000000
+   //   for i, z in zip(range(48, 60), [cpu_freq / x for x in [f * math.pow(2, i / 12) for i in range(0, 12)]]):
+   //     print(f"parameter NOTE_{i} = {z};")
+
+   parameter         NOTE_48 = 91736;
+   parameter         NOTE_49 = 86587;
+   parameter         NOTE_50 = 81728;
+   parameter         NOTE_51 = 77141;
+   parameter         NOTE_52 = 72811;
+   parameter         NOTE_53 = 68724;
+   parameter         NOTE_54 = 64867;
+   parameter         NOTE_55 = 61227;
+   parameter         NOTE_56 = 57790;
+   parameter         NOTE_57 = 54547;
+   parameter         NOTE_58 = 51485;
+   parameter         NOTE_59 = 48596;
 
    assign buzz = (ticks < on_ticks);
 
@@ -26,8 +46,13 @@ module synth (
      begin
         if (message_received)
           begin
-             on_ticks <= (velocity == 0) ? 0 : (HERTZ >> 9);
-             wave_ticks <= (HERTZ >> 8);
+             on_ticks <= (velocity == 0) ? 0 : (NOTE_48 >> 2);
+             case (note)
+               48:
+                 wave_ticks <= NOTE_48;
+               58:
+                 wave_ticks <= NOTE_58;
+             endcase
              ticks <= 0;
           end
         else
