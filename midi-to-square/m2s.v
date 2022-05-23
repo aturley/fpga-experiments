@@ -25,7 +25,7 @@ module synth (
    //   f = 130.81
    //   cpu_freq = 12000000
    //   for i, z in zip(range(48, 60), [cpu_freq / x for x in [f * math.pow(2, i / 12) for i in range(0, 12)]]):
-   //     print(f"parameter NOTE_{i} = {z};")
+   //     print(f"parameter NOTE_{i} = {math.round(z)};")
 
    parameter         NOTE_48 = 91736;
    parameter         NOTE_49 = 86587;
@@ -43,15 +43,76 @@ module synth (
    assign buzz = (ticks < on_ticks);
 
    always @ (posedge clk)
+     //       > on_ticks<
+     //  1    |---------|            |------
+     //       |         |            |
+     //  0 ---|         |------------|
+     //       >wavelength (wave_ticks)<
      begin
         if (message_received)
           begin
-             on_ticks <= (velocity == 0) ? 0 : (NOTE_48 >> 2);
+             
              case (note)
                48:
-                 wave_ticks <= NOTE_48;
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_48 >> 2);
+                    wave_ticks <= NOTE_48;
+                 end
+               49:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_49 >> 2);
+                    wave_ticks <= NOTE_49;
+                 end
+               50:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_50 >> 2);
+                    wave_ticks <= NOTE_50;
+                 end
+               51:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_51 >> 2);
+                    wave_ticks <= NOTE_51;
+                 end
+               52:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_52 >> 2);
+                    wave_ticks <= NOTE_52;
+                 end
+               53:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_53 >> 2);
+                    wave_ticks <= NOTE_53;
+                 end
+               54:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_54 >> 2);
+                    wave_ticks <= NOTE_54;
+                 end
+               55:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_55 >> 2);
+                    wave_ticks <= NOTE_55;
+                 end
+               56:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_56 >> 2);
+                    wave_ticks <= NOTE_56;
+                 end
+               57:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_57 >> 2);
+                    wave_ticks <= NOTE_57;
+                 end
                58:
-                 wave_ticks <= NOTE_58;
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_58 >> 2);
+                    wave_ticks <= NOTE_58;
+                 end
+               59:
+                 begin
+                    on_ticks <= (velocity == 0) ? 0 : (NOTE_59 >> 2);
+                    wave_ticks <= NOTE_59;
+                 end
              endcase
              ticks <= 0;
           end
@@ -128,6 +189,9 @@ module top (
      end
 
    always @ (posedge clk)
+     // MIDI NOTE ON MESSAGE
+     // | 0 byte  | 1 byte | 2 byte |
+     // | command | note   | vel    |
      begin
         case (state)
           WAITING_FOR_COMMAND:
@@ -147,7 +211,7 @@ module top (
                if (uart_rxd)
                  begin
                     note <= uart_rx;
-                    state = WAITING_FOR_VELOCITY;
+                    state <= WAITING_FOR_VELOCITY;
                  end
             end
           WAITING_FOR_VELOCITY:
@@ -155,7 +219,7 @@ module top (
                if (uart_rxd)
                  begin
                     velocity <= uart_rx;
-                    state = WAITING_FOR_COMMAND;
+                    state <= WAITING_FOR_COMMAND;
                     message_received <= 1;
                  end
             end
