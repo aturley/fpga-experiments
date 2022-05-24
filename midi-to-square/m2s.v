@@ -1,11 +1,12 @@
 `include "cores/uart.v"
 
 module synth (
-              input clk,
-              input  message_received,
-              input  [7:0] note,
-              input  [7:0] velocity,
-              output buzz
+              input       clk,
+              input       resetq,
+              input       message_received,
+              input [7:0] note,
+              input [7:0] velocity,
+              output      buzz
               );
    reg [24:0]        ticks;
    reg [24:0]        on_ticks;
@@ -27,6 +28,7 @@ module synth (
    //   for i, z in zip(range(48, 60), [cpu_freq / x for x in [f * math.pow(2, i / 12) for i in range(0, 12)]]):
    //     print(f"parameter NOTE_{i} = {math.round(z)};")
 
+   
    parameter         NOTE_48 = 91736;
    parameter         NOTE_49 = 86587;
    parameter         NOTE_50 = 81728;
@@ -40,6 +42,8 @@ module synth (
    parameter         NOTE_58 = 51485;
    parameter         NOTE_59 = 48596;
 
+   reg [24:0]        notes [11:0];
+
    assign buzz = (ticks < on_ticks);
 
    always @ (posedge clk)
@@ -49,71 +53,28 @@ module synth (
      //  0 ---|         |------------|
      //       >wavelength (wave_ticks)<
      begin
-        if (message_received)
+        if (resetq)
           begin
-             
-             case (note)
-               48:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_48 >> 2);
-                    wave_ticks <= NOTE_48;
-                 end
-               49:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_49 >> 2);
-                    wave_ticks <= NOTE_49;
-                 end
-               50:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_50 >> 2);
-                    wave_ticks <= NOTE_50;
-                 end
-               51:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_51 >> 2);
-                    wave_ticks <= NOTE_51;
-                 end
-               52:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_52 >> 2);
-                    wave_ticks <= NOTE_52;
-                 end
-               53:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_53 >> 2);
-                    wave_ticks <= NOTE_53;
-                 end
-               54:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_54 >> 2);
-                    wave_ticks <= NOTE_54;
-                 end
-               55:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_55 >> 2);
-                    wave_ticks <= NOTE_55;
-                 end
-               56:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_56 >> 2);
-                    wave_ticks <= NOTE_56;
-                 end
-               57:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_57 >> 2);
-                    wave_ticks <= NOTE_57;
-                 end
-               58:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_58 >> 2);
-                    wave_ticks <= NOTE_58;
-                 end
-               59:
-                 begin
-                    on_ticks <= (velocity == 0) ? 0 : (NOTE_59 >> 2);
-                    wave_ticks <= NOTE_59;
-                 end
-             endcase
+             notes[0] <= 91736;
+             notes[1] <= 86587;
+             notes[2] <= 81728;
+             notes[3] <= 77141;
+             notes[4] <= 72811;
+             notes[5] <= 68724;
+             notes[6] <= 64867;
+             notes[7] <= 61227;
+             notes[8] <= 57790;
+             notes[9] <= 54547;
+             notes[10] <= 51485;
+             notes[11] <= 48596;
+          end
+        else if (message_received)
+          begin
+             if ((note > 47) && (note < 60))
+               begin
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 48)] >> 2);
+                  wave_ticks <= notes[(note - 48)];
+               end
              ticks <= 0;
           end
         else
@@ -160,6 +121,7 @@ module top (
    
    synth synth0 (
                  .clk(clk),
+                 .resetq(resetq),
                  .message_received(message_received),
                  .note(note),
                  .velocity(velocity),
