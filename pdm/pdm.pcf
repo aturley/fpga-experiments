@@ -1,0 +1,4 @@
+set_io clk 21
+set_io buzz 44
+set_io resetq 3
+set_io debug 98
