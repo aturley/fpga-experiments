@@ -8,11 +8,10 @@ and plays a square wave of the corresponding frequency.
 
 ## Current status
 
-The system reads from the pin that is connected to the FTDI
-USB-to-serial device at 9600 baud and puts out the signal on one of
-the LED pins on the board. This facilitates testing to make sure that
-the logic is right before moving on to hardware.
+The system reads MIDI note on messages from pin 119; if the note is
+between 48 and 59 (inclusive) and the velocity is greater than 0 then
+the note is played using by generating a 50% duty cycle square wave on
+pin 44.
 
-It listens for MIDI note on commands and turns the LED on or off
-depending on whether or not the velocity of the note is greater than
-zero.
+The built-in serial port on pin 9 can also be used at 9600 baud by
+changing the Verilog source file and using the `m2s-serial.pcf` file.

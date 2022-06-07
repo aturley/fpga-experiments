@@ -14,8 +14,6 @@ module synth (
 
    parameter         HERTZ = 12000000;
 
-   // TODO:
-   //
    // MIDI wave lengths in ticks, for notes 48 to 59. These 
    // can be shifted right or left to put them into the correct 
    // octave.
@@ -128,7 +126,10 @@ module top (
                  .buzz(buzz)
                  );
 
-   uart #(.CLOCK_DIVIDE(312))
+   // serial port (9600 baud) -- 312
+   // midi port (32150 baud) -- (12Mhz) / (baud rate * 4) = 93.3...
+   uart #(.CLOCK_DIVIDE(94))
+   // uart #(.CLOCK_DIVIDE(312))
    uart0(
          .clk(clk),
          .rst(resetq),
