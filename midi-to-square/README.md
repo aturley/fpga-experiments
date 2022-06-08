@@ -9,7 +9,7 @@ and plays a square wave of the corresponding frequency.
 ## Current status
 
 The system reads MIDI note on messages from pin 119; if the note is
-between 48 and 59 (inclusive) and the velocity is greater than 0 then
+between 24 and 120 (inclusive) and the velocity is greater than 0 then
 the note is played using by generating a 50% duty cycle square wave on
 pin 44.
 

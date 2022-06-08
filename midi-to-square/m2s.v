@@ -42,8 +42,10 @@ module synth (
 
    reg [24:0]        notes [11:0];
 
-   assign buzz = (ticks < on_ticks);
+   reg [16:0]        amp;
 
+   assign buzz = (ticks < on_ticks) & amp;
+   
    always @ (posedge clk)
      //       > on_ticks<
      //  1    |---------|            |------
@@ -68,15 +70,59 @@ module synth (
           end
         else if (message_received)
           begin
-             if ((note > 47) && (note < 60))
+             // use basic PDM to control the amplitude
+             amp <= 'h1FFFF >> ('h1F - velocity[6:2]);
+        
+             if (note < 24)
                begin
-                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 48)] >> 2);
+               end
+             else if (note < 36)
+               begin
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 24)] << 1);
+                  wave_ticks <= notes[(note - 24)] << 2;
+               end
+             else if (note < 48)
+               begin
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 36)]);
+                  wave_ticks <= notes[(note - 36)] << 1;
+               end
+             else if (note < 60)
+               begin
+                  // Base octave
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 48)] >> 1);
                   wave_ticks <= notes[(note - 48)];
+               end
+             else if (note < 72)
+               begin
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 60)] >> 2);
+                  wave_ticks <= notes[(note - 60)] >> 1;
+               end
+             else if (note < 84)
+               begin
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 72)] >> 3);
+                  wave_ticks <= notes[(note - 72)] >> 2;
+               end
+             else if ((note < 96))
+               begin
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 84)] >> 4);
+                  wave_ticks <= notes[(note - 84)] >> 3;
+               end
+             else if (note < 108)
+               begin
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 96)] >> 5);
+                  wave_ticks <= notes[(note - 96)] >> 4;
+               end
+             else if (note < 120)
+               begin
+                  on_ticks <= (velocity == 0) ? 0 : (notes[(note - 108)] >> 6);
+                  wave_ticks <= notes[(note - 108)] >> 5;
                end
              ticks <= 0;
           end
         else
           begin
+             amp <= {amp[15:0], amp[16]};
+
              if (ticks < wave_ticks)
                begin
                   ticks <= ticks + 1;
@@ -94,7 +140,11 @@ module top (
             input  rx,
             input  resetq,
             output buzz,
-            output tx
+            output tx,
+            output rled_0,
+            output rled_1,
+            output rled_2,
+            output rled_3,
             );
    
    reg [7:0] uart_rx;
@@ -106,6 +156,13 @@ module top (
    
    reg [3:0] state = 0;
 
+   reg [1:0] msg_count = 0;
+
+   assign rled_0 = (msg_count == 0);
+   assign rled_1 = (msg_count == 1);
+   assign rled_2 = (msg_count == 2);
+   assign rled_3 = (msg_count == 3);
+   
    wire      clk;
 
    parameter WAITING_FOR_COMMAND = 0;
@@ -184,6 +241,7 @@ module top (
                     velocity <= uart_rx;
                     state <= WAITING_FOR_COMMAND;
                     message_received <= 1;
+                    msg_count <= msg_count + 1;
                  end
             end
         endcase

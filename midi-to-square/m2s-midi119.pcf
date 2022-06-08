@@ -3,3 +3,7 @@ set_io tx 118
 set_io rx 119
 set_io buzz 44
 set_io resetq 3
+set_io rled_0 96
+set_io rled_1 97
+set_io rled_2 98
+set_io rled_3 99
