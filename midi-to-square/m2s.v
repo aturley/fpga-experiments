@@ -42,9 +42,9 @@ module synth (
 
    reg [24:0]        notes [11:0];
 
-   reg [16:0]        amp;
+   reg [15:0]        amp;
 
-   assign buzz = (ticks < on_ticks) & amp;
+   assign buzz = (ticks < on_ticks) ^ amp;
    
    always @ (posedge clk)
      //       > on_ticks<
@@ -71,7 +71,7 @@ module synth (
         else if (message_received)
           begin
              // use basic PDM to control the amplitude
-             amp <= 'h1FFFF >> ('h1F - velocity[6:2]);
+             amp <= 'h5555 << velocity[6:3];
         
              if (note < 24)
                begin
@@ -121,7 +121,8 @@ module synth (
           end
         else
           begin
-             amp <= {amp[15:0], amp[16]};
+             // rotate left
+             amp <= {amp[14:0], amp[15]};
 
              if (ticks < wave_ticks)
                begin
