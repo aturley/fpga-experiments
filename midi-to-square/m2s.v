@@ -4,8 +4,9 @@ module synth (
               input       clk,
               input       resetq,
               input       message_received,
-              input [7:0] note,
-              input [7:0] velocity,
+              input [7:0] command,
+              input [7:0] value1,
+              input [7:0] value2,
               output      buzz
               );
    reg [24:0]        ticks;
@@ -45,6 +46,14 @@ module synth (
    reg [15:0]        amp;
 
    assign buzz = (ticks < on_ticks) ^ amp;
+
+   wire [7:0]        note;
+   wire [7:0]        velocity;
+
+   assign note = value1;
+   assign velocity = value2;
+
+   localparam        NOTE_ON = 'b1001;
    
    always @ (posedge clk)
      //       > on_ticks<
@@ -68,7 +77,7 @@ module synth (
              notes[10] <= 51485;
              notes[11] <= 48596;
           end
-        else if (message_received)
+        else if (message_received && (command[7:4] == NOTE_ON))
           begin
              // use basic PDM to control the amplitude
              amp <= 'h5555 << velocity[6:3];
@@ -151,8 +160,8 @@ module top (
    reg [7:0] uart_rx;
    reg       uart_rxd;
    reg [7:0] command;
-   reg [7:0] note;
-   reg [7:0] velocity;
+   reg [7:0] value1;
+   reg [7:0] value2;
    reg       message_received;
    
    reg [3:0] state = 0;
@@ -167,8 +176,8 @@ module top (
    wire      clk;
 
    parameter WAITING_FOR_COMMAND = 0;
-   parameter WAITING_FOR_NOTE = 1;
-   parameter WAITING_FOR_VELOCITY = 2;
+   parameter WAITING_FOR_VALUE1 = 1;
+   parameter WAITING_FOR_VALUE2 = 2;
 
    SB_GB clk_gb (
                  .USER_SIGNAL_TO_GLOBAL_BUFFER(clki),
@@ -179,8 +188,9 @@ module top (
                  .clk(clk),
                  .resetq(resetq),
                  .message_received(message_received),
-                 .note(note),
-                 .velocity(velocity),
+                 .command(command),
+                 .value1(value1),
+                 .value2(value2),
                  .buzz(buzz)
                  );
 
@@ -210,9 +220,9 @@ module top (
      end
 
    always @ (posedge clk)
-     // MIDI NOTE ON MESSAGE
+     // MIDI COMMAND
      // | 0 byte  | 1 byte | 2 byte |
-     // | command | note   | vel    |
+     // | command | value1 | value2 |
      begin
         case (state)
           WAITING_FOR_COMMAND:
@@ -221,25 +231,25 @@ module top (
                  begin
                     message_received <= 0;
                  end
-               if (uart_rxd && (uart_rx[7:4] == 4'b1001))
+               if (uart_rxd)
                  begin
                     command <= uart_rx;
-                    state <= WAITING_FOR_NOTE;
+                    state <= WAITING_FOR_VALUE1;
                  end
             end
-          WAITING_FOR_NOTE:
+          WAITING_FOR_VALUE1:
             begin
                if (uart_rxd)
                  begin
-                    note <= uart_rx;
-                    state <= WAITING_FOR_VELOCITY;
+                    value1 <= uart_rx;
+                    state <= WAITING_FOR_VALUE2;
                  end
             end
-          WAITING_FOR_VELOCITY:
+          WAITING_FOR_VALUE2:
             begin
                if (uart_rxd)
                  begin
-                    velocity <= uart_rx;
+                    value2 <= uart_rx;
                     state <= WAITING_FOR_COMMAND;
                     message_received <= 1;
                     msg_count <= msg_count + 1;
